@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>책 추천</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 30px;
+      background: #f9f9f9;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: #4a90e2;
+      color: white;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: #357ab7;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>책 추천 시스템</h1>
+
+  <!-- 1차 분류 -->
+  <div id="level1" class="btn-group">
+    <button class="btn" onclick="selectLevel(1, '일반')">일반</button>
+    <button class="btn" onclick="selectLevel(1, '과목')">과목</button>
+  </div>
+
+  <!-- 2차 분류 -->
+  <div id="level2" class="btn-group hidden"></div>
+
+  <!-- 3차 분류 -->
+  <div id="level3" class="btn-group hidden"></div>
+
+  <!-- 4차 분류 -->
+  <div id="level4" class="btn-group hidden"></div>
+
+  <script>
+    const data = {
+      "일반": {
+        "문학": ["소설", "시집", "수필", "희곡"],
+        "과학*기술": ["자연과학", "기술과학", "컴퓨터"],
+        "사회과학": ["지리", "종교", "정치", "경제", "철학"],
+        "역사": ["아시아", "유럽", "아프리카", "아메리카", "오세아니아, 양극지방"],
+        "예체능": ["미술", "체육", "음악"]
+      },
+      "과목": {
+        "국어": ["문학", "독서", "언어와 매체", "화법과 작문"],
+        "수학": ["수학1", "수학2", "미적분", "기하", "확률과 통계"],
+        "영어": [],
+        "과학": ["물리", "화학", "생명과학", "지구과학"],
+        "사회": ["윤리와 사상", "생활과 윤리", "한국지리", "세계지리", "동아시아사", "세계사", "정치와 법", "사회 문화", "경제"],
+        "예체능": ["음악", "미술", "체육"],
+        "기술가정": ["정보/인공지능"],
+        "제2외국어": ["한문", "일본어"]
+      }
+    };
+
+    let selected = {
+      level1: "",
+      level2: "",
+      level3: ""
+    };
+
+    function selectLevel(level, value) {
+      if (level === 1) {
+        selected.level1 = value;
+        showNext("level2", Object.keys(data[value]), 2);
+      } else if (level === 2) {
+        selected.level2 = value;
+        showNext("level3", data[selected.level1][value], 3);
+      } else if (level === 3) {
+        selected.level3 = value;
+        showNext("level4", ["조건에 맞는 책 보기"], 4);
+      } else if (level === 4) {
+        alert(`추천 조건:\n1차: ${selected.level1}\n2차: ${selected.level2}\n3차: ${selected.level3}`);
+        // 이곳에 도서 목록 필터링 기능 연결 예정
+      }
+    }
+
+    function showNext(id, items, nextLevel) {
+      const container = document.getElementById(id);
+      container.innerHTML = "";
+      items.forEach(item => {
+        const btn = document.createElement("button");
+        btn.className = "btn";
+        btn.innerText = item;
+        btn.onclick = () => selectLevel(nextLevel, item);
+        container.appendChild(btn);
+      });
+      container.classList.remove("hidden");
+
+      // 이후 레벨은 숨기기
+      if (nextLevel < 4) document.getElementById("level4").classList.add("hidden");
+      if (nextLevel < 3) document.getElementById("level3").classList.add("hidden");
+    }
+  </script>
+
+</body>
+</html>

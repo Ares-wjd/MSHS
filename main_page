@@ -43,9 +43,9 @@
   <h1>학교 정보 허브</h1>
 
   <div class="menu-container">
-    <a href="도서관책검색링크" class="menu-button">도서관 책 검색</a>
+    <a href="https://read365.edunet.net/PureScreen/SchoolSearch?schoolName=명신고등학교&provCode=S10&neisCode=S100000563" class="menu-button" target="_blank">도서관 책 검색</a>
     <a href="recommend.html" class="menu-button">책 추천</a>
-    <a href="게임허브링크" class="menu-button">게임 허브</a>
+    <a href="https://ares-wjd.github.io/-Debug-Games-Hub/" class="menu-button" target="_blank">게임 허브</a>
   </div>
 
 </body>

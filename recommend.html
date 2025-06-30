@@ -5,31 +5,32 @@
   <title>책 추천</title>
   <style>
     body {
-      font-family: sans-serif;
-      padding: 30px;
-      background: #f9f9f9;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      padding: 40px;
     }
     h1 {
       text-align: center;
-      color: #333;
+      margin-bottom: 30px;
     }
     .btn-group {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      margin: 20px 0;
+      margin-bottom: 20px;
     }
     .btn {
-      padding: 10px 20px;
+      background: #007bff;
+      color: #fff;
       border: none;
-      border-radius: 8px;
-      background: #4a90e2;
-      color: white;
-      font-size: 1em;
+      padding: 10px 18px;
+      border-radius: 6px;
       cursor: pointer;
+      transition: background 0.2s;
     }
     .btn:hover {
-      background: #357ab7;
+      background: #0056b3;
     }
     .hidden {
       display: none;
@@ -40,12 +41,11 @@
       margin-top: 20px;
     }
     th, td {
-      border: 1px solid #ccc;
+      border: 1px solid #ddd;
       padding: 8px;
-      text-align: left;
     }
     th {
-      background: #eee;
+      background: #f0f0f0;
     }
   </style>
 </head>
@@ -64,6 +64,9 @@
 
   <!-- 3차 분류 -->
   <div id="level3" class="btn-group hidden"></div>
+
+  <!-- 4차 분류 -->
+  <div id="level4" class="btn-group hidden"></div>
 
 
   <div id="controls" class="btn-group hidden">
@@ -95,18 +98,22 @@
       }
     };
 
-    const EXCEL_URL = "dlsExportList_classified.xlsx";
+    const EXCEL_URL = "./dlsExportList_classified.xlsx";
     let bookData = [];
+    let excelLoaded = false;
 
     async function loadExcel() {
       try {
         const res = await fetch(EXCEL_URL);
+        if (!res.ok) throw new Error(res.statusText);
         const arrayBuffer = await res.arrayBuffer();
         const workbook = XLSX.read(arrayBuffer, { type: "array" });
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         bookData = XLSX.utils.sheet_to_json(sheet);
+        excelLoaded = true;
       } catch (e) {
         console.error("엑셀 로드 실패", e);
+        document.getElementById("results").innerHTML = "<p>데이터를 불러오지 못했습니다.</p>";
       }
     }
     loadExcel();
@@ -115,6 +122,7 @@
       level1: "",
       level2: "",
       level3: "",
+      level4: "",
     };
 
     function selectLevel(level, value) {
@@ -122,23 +130,46 @@
         selected.level1 = value;
         selected.level2 = "";
         selected.level3 = "";
+        selected.level4 = "";
         showNext("level2", Object.keys(data[value]), 2);
         document.getElementById("controls").classList.add("hidden");
         document.getElementById("results").classList.add("hidden");
+        document.getElementById("level3").classList.add("hidden");
+        document.getElementById("level4").classList.add("hidden");
       } else if (level === 2) {
         selected.level2 = value;
         selected.level3 = "";
+        selected.level4 = "";
         showNext("level3", data[selected.level1][value], 3);
         document.getElementById("controls").classList.remove("hidden");
         document.getElementById("results").classList.add("hidden");
+        document.getElementById("level4").classList.add("hidden");
       } else if (level === 3) {
         selected.level3 = value;
+        selected.level4 = "";
+        if (excelLoaded) {
+          const level4Options = Array.from(new Set(bookData
+            .filter(r => r["1차분류"] === selected.level1 &&
+                        r["2차분류"] === selected.level2 &&
+                        r["3차분류"] === selected.level3)
+            .map(r => r["4차분류"]) 
+            .filter(v => v && v.trim())));
+          if (level4Options.length > 0) {
+            showNext("level4", level4Options, 4);
+            document.getElementById("controls").classList.remove("hidden");
+            document.getElementById("results").classList.add("hidden");
+            return;
+          }
+        }
+        showResults();
+      } else if (level === 4) {
+        selected.level4 = value;
         showResults();
       }
-      }
+    }
     function showResults() {
       const resultsDiv = document.getElementById("results");
-      if (bookData.length === 0) {
+      if (!excelLoaded) {
         resultsDiv.innerHTML = "<p>데이터를 불러오는 중입니다. 잠시만 기다려주세요.</p>";
         resultsDiv.classList.remove("hidden");
         return;
@@ -147,6 +178,7 @@
         if (row["1차분류"] !== selected.level1) return false;
         if (selected.level2 && row["2차분류"] !== selected.level2) return false;
         if (selected.level3 && row["3차분류"] !== selected.level3) return false;
+        if (selected.level4 && row["4차분류"] !== selected.level4) return false;
         return true;
       });
       if (filtered.length === 0) {
@@ -185,8 +217,12 @@
         container.classList.add("hidden");
       }
 
-      // 이후 레벨은 숨기기
-      if (nextLevel < 3) document.getElementById("level3").classList.add("hidden");
+      if (nextLevel <= 2) {
+        document.getElementById("level3").classList.add("hidden");
+        document.getElementById("level4").classList.add("hidden");
+      } else if (nextLevel === 3) {
+        document.getElementById("level4").classList.add("hidden");
+      }
     }
   </script>
 

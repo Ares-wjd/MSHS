@@ -34,6 +34,19 @@
     .hidden {
       display: none;
     }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background: #eee;
+    }
   </style>
 </head>
 <body>
@@ -54,6 +67,14 @@
 
   <!-- 4차 분류 -->
   <div id="level4" class="btn-group hidden"></div>
+
+  <div id="controls" class="btn-group hidden">
+    <button id="showResultsBtn" class="btn" onclick="showResults()">추천 도서 보기</button>
+  </div>
+
+  <div id="results" class="hidden"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <script>
     const data = {
@@ -76,39 +97,106 @@
       }
     };
 
+    const EXCEL_URL = "https://raw.githubusercontent.com/ares-wjd/MSHS/main/dlsExportList_classified.xlsx";
+    let bookData = [];
+
+    async function loadExcel() {
+      try {
+        const res = await fetch(EXCEL_URL);
+        const arrayBuffer = await res.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: "array" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        bookData = XLSX.utils.sheet_to_json(sheet);
+      } catch (e) {
+        console.error("엑셀 로드 실패", e);
+      }
+    }
+    loadExcel();
+
     let selected = {
       level1: "",
       level2: "",
-      level3: ""
+      level3: "",
+      level4: ""
     };
 
     function selectLevel(level, value) {
       if (level === 1) {
         selected.level1 = value;
+        selected.level2 = "";
+        selected.level3 = "";
+        selected.level4 = "";
         showNext("level2", Object.keys(data[value]), 2);
+        document.getElementById("controls").classList.add("hidden");
+        document.getElementById("results").classList.add("hidden");
       } else if (level === 2) {
         selected.level2 = value;
+        selected.level3 = "";
+        selected.level4 = "";
         showNext("level3", data[selected.level1][value], 3);
+        document.getElementById("controls").classList.remove("hidden");
+        document.getElementById("results").classList.add("hidden");
       } else if (level === 3) {
         selected.level3 = value;
+        selected.level4 = "";
         showNext("level4", ["조건에 맞는 책 보기"], 4);
+        document.getElementById("controls").classList.remove("hidden");
+        document.getElementById("results").classList.add("hidden");
       } else if (level === 4) {
-        alert(`추천 조건:\n1차: ${selected.level1}\n2차: ${selected.level2}\n3차: ${selected.level3}`);
-        // 이곳에 도서 목록 필터링 기능 연결 예정
+        selected.level4 = value;
+        showResults();
       }
+    }
+
+    function showResults() {
+      const resultsDiv = document.getElementById("results");
+      if (bookData.length === 0) {
+        resultsDiv.innerHTML = "<p>데이터를 불러오는 중입니다. 잠시만 기다려주세요.</p>";
+        resultsDiv.classList.remove("hidden");
+        return;
+      }
+      const filtered = bookData.filter(row => {
+        if (row["1차분류"] !== selected.level1) return false;
+        if (selected.level2 && row["2차분류"] !== selected.level2) return false;
+        if (selected.level3 && row["3차분류"] !== selected.level3) return false;
+        if (selected.level4 && row["4차분류"] !== selected.level4) return false;
+        return true;
+      });
+      if (filtered.length === 0) {
+        resultsDiv.innerHTML = "<p>조건에 맞는 도서가 없습니다.</p>";
+      } else {
+        const table = document.createElement("table");
+        const thead = document.createElement("thead");
+        thead.innerHTML = "<tr><th>자료명</th><th>저자</th><th>출판사</th><th>청구기호</th></tr>";
+        table.appendChild(thead);
+        const tbody = document.createElement("tbody");
+        filtered.forEach(row => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${row["자료명"]}</td><td>${row["저자"]}</td><td>${row["출판사"]}</td><td>${row["청구기호"]}</td>`;
+          tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        resultsDiv.innerHTML = "";
+        resultsDiv.appendChild(table);
+      }
+      resultsDiv.classList.remove("hidden");
     }
 
     function showNext(id, items, nextLevel) {
       const container = document.getElementById(id);
       container.innerHTML = "";
-      items.forEach(item => {
-        const btn = document.createElement("button");
-        btn.className = "btn";
-        btn.innerText = item;
-        btn.onclick = () => selectLevel(nextLevel, item);
-        container.appendChild(btn);
-      });
-      container.classList.remove("hidden");
+      if (items.length > 0) {
+        items.forEach(item => {
+          const btn = document.createElement("button");
+          btn.className = "btn";
+          btn.innerText = item;
+          btn.onclick = () => selectLevel(nextLevel, item);
+          container.appendChild(btn);
+        });
+        container.classList.remove("hidden");
+      } else {
+        container.classList.add("hidden");
+      }
 
       // 이후 레벨은 숨기기
       if (nextLevel < 4) document.getElementById("level4").classList.add("hidden");

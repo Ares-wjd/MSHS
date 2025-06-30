@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>학교 정보 허브</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f0f4f8;
+      text-align: center;
+      padding-top: 100px;
+    }
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 50px;
+      color: #333;
+    }
+    .menu-container {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      flex-wrap: wrap;
+    }
+    .menu-button {
+      background-color: #4a90e2;
+      color: white;
+      padding: 20px 40px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.2em;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .menu-button:hover {
+      background-color: #357ab7;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>학교 정보 허브</h1>
+
+  <div class="menu-container">
+    <a href="도서관책검색링크" class="menu-button">도서관 책 검색</a>
+    <a href="recommend.html" class="menu-button">책 추천</a>
+    <a href="게임허브링크" class="menu-button">게임 허브</a>
+  </div>
+
+</body>
+</html>

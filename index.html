@@ -1,40 +1,57 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>학교 정보 허브</title>
   <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
     body {
-      font-family: 'Arial', sans-serif;
-      background-color: #f0f4f8;
-      text-align: center;
-      padding-top: 100px;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #f0f4f8, #e8f0fe);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 80px 20px;
     }
     h1 {
-      font-size: 2.5em;
+      font-size: 3em;
       margin-bottom: 50px;
-      color: #333;
+      color: #2c3e50;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
     }
     .menu-container {
-      display: flex;
-      justify-content: center;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
       gap: 30px;
-      flex-wrap: wrap;
+      width: 100%;
+      max-width: 700px;
     }
     .menu-button {
-      background-color: #4a90e2;
-      color: white;
-      padding: 20px 40px;
+      background-color: #ffffff;
+      color: #34495e;
+      padding: 25px 20px;
       border: none;
-      border-radius: 10px;
-      font-size: 1.2em;
-      cursor: pointer;
-      transition: background-color 0.3s;
+      border-radius: 16px;
+      font-size: 1.1em;
+      font-weight: 600;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       text-decoration: none;
-      display: inline-block;
+      transition: all 0.3s ease;
     }
     .menu-button:hover {
-      background-color: #357ab7;
+      background-color: #4a90e2;
+      color: white;
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    }
+    .menu-button.wide {
+      grid-column: span 2;
     }
   </style>
 </head>
@@ -45,7 +62,11 @@
   <div class="menu-container">
     <a href="https://read365.edunet.net/PureScreen/SchoolSearch?schoolName=명신고등학교&provCode=S10&neisCode=S100000563" class="menu-button" target="_blank">도서관 책 검색</a>
     <a href="recommend.html" class="menu-button">책 추천</a>
-    <a href="https://ares-wjd.github.io/-Debug-Games-Hub/" class="menu-button" target="_blank">게임 허브</a>
+    <a href="#" class="menu-button">오늘의 급식 정보</a>
+    <a href="#" class="menu-button">시간표 확인</a>
+    <a href="#" class="menu-button">시험 일정 캘린더</a>
+    <a href="#" class="menu-button">학교 일정 안내</a>
+    <a href="https://ares-wjd.github.io/-Debug-Games-Hub/" class="menu-button wide" target="_blank">🎮 게임 허브</a>
   </div>
 
 </body>

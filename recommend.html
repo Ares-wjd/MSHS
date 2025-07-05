@@ -65,79 +65,56 @@
   </div>
 
   <div id="level1" class="btn-group">
-    <button class="btn" onclick="selectLevel(1, '일반')">일반</button>
-    <button class="btn" onclick="selectLevel(1, '과목')">과목</button>
-  </div>
-
-  <div id="level2" class="btn-group hidden"></div>
-
-  <div id="controls" class="btn-group hidden">
-    <button id="showResultsBtn" class="btn" onclick="showResults()">추천 도서 보기</button>
+    <button class="btn" onclick="selectSubject('국어')">국어</button>
+    <button class="btn" onclick="selectSubject('수학')">수학</button>
+    <button class="btn" onclick="selectSubject('영어')">영어</button>
+    <button class="btn" onclick="selectSubject('사회')">사회</button>
+    <button class="btn" onclick="selectSubject('과학')">과학</button>
+    <button class="btn" onclick="selectSubject('기술가정')">기술가정</button>
+    <button class="btn" onclick="selectSubject('예체능')">예체능</button>
   </div>
 
   <div id="results" class="hidden"></div>
 
   <script>
-    const data = {
-      "일반": {
-        "문학": ["소설", "시집", "수필", "희곡"],
-        "과학*기술": ["자연과학", "기술과학", "컴퓨터"],
-        "사회과학": ["지리", "종교", "정치", "경제", "철학"],
-        "역사": ["아시아", "유럽", "아프리카", "아메리카", "오세아니아, 양극지방"],
-        "예체능": ["미술", "체육", "음악"]
-      },
-      "과목": {
-        "국어": ["문학", "독서", "언어와 매체", "화법과 작문"],
-        "수학": ["수학1", "수학2", "미적분", "기하", "확률과 통계"],
-        "영어": [],
-        "과학": ["물리", "화학", "생명과학", "지구과학"],
-        "사회": ["윤리와 사상", "생활과 윤리", "한국지리", "세계지리", "동아시아사", "세계사", "정치와 법", "사회 문화", "경제"],
-        "예체능": ["음악", "미술", "체육"],
-        "기술가정": ["정보/인공지능"],
-        "제2외국어": ["한문", "일본어"]
-      }
-    };
-
     let bookData = [];
-    let selected = { level1: "", level2: "" };
+
+    const subjectToCategories = {
+      "국어": [["국어", "언어와 매체"]],
+      "수학": [["자연과학", "수학"]],
+      "영어": [["영어", "기타"]],
+      "사회": [["사회", "정치"], ["사회", "동아시아사"], ["사회", "세계지리"], ["사회", "경제"]],
+      "과학": [["과학", "물리"], ["과학", "화학"], ["과학", "생명과학"], ["과학", "지구과학"]],
+      "기술가정": [["기술가정", "정보/인공지능"]],
+      "예체능": [["예체능", "미술"], ["예체능", "음악"], ["예체능", "체육"]],
+    };
 
     window.addEventListener("DOMContentLoaded", async () => {
       try {
-        const res = await fetch("books.json");
+        const res = await fetch("dlsExportList_final.json");
         bookData = await res.json();
         console.log("도서 데이터 로드 완료");
       } catch (error) {
-        alert("books.json 파일을 불러오는 데 실패했습니다.");
+        alert("dlsExportList_final.json 파일을 불러오는 데 실패했습니다.");
         console.error(error);
       }
     });
 
-    function selectLevel(level, value) {
-      if (level === 1) {
-        selected.level1 = value;
-        selected.level2 = "";
-        showNext("level2", Object.keys(data[value]), 2);
-        document.getElementById("controls").classList.add("hidden");
-        document.getElementById("results").classList.add("hidden");
-      } else if (level === 2) {
-        selected.level2 = value;
-        document.getElementById("controls").classList.remove("hidden");
-        document.getElementById("results").classList.add("hidden");
-      }
-    }
-
-    function showResults() {
+    function selectSubject(subject) {
       const resultsDiv = document.getElementById("results");
-      if (bookData.length === 0) {
-        resultsDiv.innerHTML = "<p>도서 데이터가 아직 로드되지 않았습니다.</p>";
+      if (!bookData.length) {
+        resultsDiv.innerHTML = "<p>도서 데이터를 아직 불러오지 못했습니다.</p>";
         resultsDiv.classList.remove("hidden");
         return;
       }
-      const filtered = bookData.filter(row => {
-        if (row["1차분류"] !== selected.level1) return false;
-        if (selected.level2 && row["2차분류"] !== selected.level2) return false;
-        return true;
-      });
+
+      const filters = subjectToCategories[subject] || [];
+      const filtered = bookData.filter(row =>
+        filters.some(([c1, c2]) =>
+          row["1차분류"] === c1 && row["2차분류"] === c2
+        )
+      );
+
       displayResults(filtered);
     }
 
@@ -178,23 +155,6 @@
         resultsDiv.appendChild(table);
       }
       resultsDiv.classList.remove("hidden");
-    }
-
-    function showNext(id, items, nextLevel) {
-      const container = document.getElementById(id);
-      container.innerHTML = "";
-      if (items.length > 0) {
-        items.forEach(item => {
-          const btn = document.createElement("button");
-          btn.className = "btn";
-          btn.innerText = item;
-          btn.onclick = () => selectLevel(nextLevel, item);
-          container.appendChild(btn);
-        });
-        container.classList.remove("hidden");
-      } else {
-        container.classList.add("hidden");
-      }
     }
   </script>
 </body>

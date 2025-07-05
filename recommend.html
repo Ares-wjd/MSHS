@@ -153,7 +153,14 @@
       if (selectedCategory) {
         results = results.filter(row => row["1차분류"] === selectedCategory);
         if (selectedSubcategory) {
-          results = results.filter(row => row["2차분류"] === selectedSubcategory);
+          let targetSub = selectedSubcategory;
+
+          // 수학2를 미적분처럼 처리
+          if (selectedSubcategory === "수학2") {
+            targetSub = "미적분";
+          }
+
+          results = results.filter(row => row["2차분류"] === targetSub);
         }
       }
 

@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>책 추천</title>
+  <meta charset="UTF-8" />
+  <title>책 추천 시스템</title>
   <style>
     body {
       font-family: sans-serif;
@@ -18,6 +18,7 @@
       flex-wrap: wrap;
       gap: 10px;
       margin: 20px 0;
+      justify-content: center;
     }
     .btn {
       padding: 10px 20px;
@@ -60,11 +61,11 @@
   <h1>책 추천 시스템</h1>
 
   <div style="margin: 30px 0; text-align: center;">
-    <input type="text" id="searchInput" placeholder="도서명 또는 저자명 검색">
+    <input type="text" id="searchInput" placeholder="도서명 또는 저자명 검색" />
     <button class="btn" onclick="searchKeyword()">검색</button>
   </div>
 
-  <div id="level1" class="btn-group">
+  <div class="btn-group">
     <button class="btn" onclick="selectSubject('국어')">국어</button>
     <button class="btn" onclick="selectSubject('수학')">수학</button>
     <button class="btn" onclick="selectSubject('영어')">영어</button>
@@ -72,6 +73,7 @@
     <button class="btn" onclick="selectSubject('과학')">과학</button>
     <button class="btn" onclick="selectSubject('기술가정')">기술가정</button>
     <button class="btn" onclick="selectSubject('예체능')">예체능</button>
+    <button class="btn" onclick="selectSubject('제2외국어')">제2외국어</button>
   </div>
 
   <div id="results" class="hidden"></div>
@@ -80,26 +82,73 @@
     let bookData = [];
 
     const subjectToCategories = {
-      "국어": [["국어", "언어와 매체"]],
-      "수학": [["자연과학", "수학"]],
-      "영어": [["영어", "기타"]],
-      "사회": [["사회", "정치"], ["사회", "동아시아사"], ["사회", "세계지리"], ["사회", "경제"]],
-      "과학": [["과학", "물리"], ["과학", "화학"], ["과학", "생명과학"], ["과학", "지구과학"]],
-      "기술가정": [["기술가정", "정보/인공지능"]],
-      "예체능": [["예체능", "미술"], ["예체능", "음악"], ["예체능", "체육"]],
+      "국어": [
+        ["국어", "문학"],
+        ["국어", "독서"],
+        ["국어", "언어와 매체"],
+        ["국어", "화법과 작문"]
+      ],
+      "수학": [
+        ["수학", "수학1"],
+        ["수학", "수학2"],
+        ["수학", "미적분"],
+        ["수학", "기하"],
+        ["수학", "확률과 통계"]
+      ],
+      "영어": [
+        ["영어", "영어"]
+      ],
+      "사회": [
+        ["사회", "윤리와 사상"],
+        ["사회", "생활과 윤리"],
+        ["사회", "한국지리"],
+        ["사회", "세계지리"],
+        ["사회", "동아시아사"],
+        ["사회", "세계사"],
+        ["사회", "정치와 법"],
+        ["사회", "사회 문화"],
+        ["사회", "경제"]
+      ],
+      "과학": [
+        ["과학", "물리"],
+        ["과학", "화학"],
+        ["과학", "생명과학"],
+        ["과학", "지구과학"]
+      ],
+      "예체능": [
+        ["예체능", "미술"],
+        ["예체능", "음악"],
+        ["예체능", "체육"]
+      ],
+      "기술가정": [
+        ["기술가정", "정보/인공지능"]
+      ],
+      "제2외국어": [
+        ["제2외국어", "한문"],
+        ["제2외국어", "일본어"]
+      ]
     };
 
     window.addEventListener("DOMContentLoaded", async () => {
       try {
         const res = await fetch("dlsExportList_final.json");
+        if (!res.ok) throw new Error("HTTP 오류: " + res.status);
         bookData = await res.json();
         console.log("도서 데이터 로드 완료");
-      } catch (error) {
-        alert("dlsExportList_final.json 파일을 불러오는 데 실패했습니다.");
-        console.error(error);
+      } catch (err) {
+        document.getElementById("results").innerHTML = `
+          <p style="color:red;">❗ 도서 데이터를 불러오는 데 실패했습니다.<br>
+          <code>dlsExportList_final.json</code> 파일이 같은 폴더에 있어야 합니다.</p>`;
+        document.getElementById("results").classList.remove("hidden");
+        console.error(err);
       }
+
+      document.getElementById("searchInput").addEventListener("keydown", function (e) {
+        if (e.key === "Enter") searchKeyword();
+      });
     });
 
+    // 과목 선택 → 분류 매핑 필터링
     function selectSubject(subject) {
       const resultsDiv = document.getElementById("results");
       if (!bookData.length) {
@@ -121,12 +170,10 @@
     function searchKeyword() {
       const keyword = document.getElementById("searchInput").value.trim().toLowerCase();
       if (!keyword || bookData.length === 0) return;
-      const filtered = bookData.filter(row => {
-        return (
-          row["자료명"]?.toLowerCase().includes(keyword) ||
-          row["저자"]?.toLowerCase().includes(keyword)
-        );
-      });
+      const filtered = bookData.filter(row =>
+        row["자료명"]?.toLowerCase().includes(keyword) ||
+        row["저자"]?.toLowerCase().includes(keyword)
+      );
       displayResults(filtered);
     }
 
@@ -143,14 +190,13 @@
           <tbody>
             ${filtered.map(row => `
               <tr>
-                <td>${row["자료명"]}</td>
-                <td>${row["저자"]}</td>
-                <td>${row["출판사"]}</td>
-                <td>${row["청구기호"]}</td>
+                <td>${row["자료명"] || "-"}</td>
+                <td>${row["저자"] || "-"}</td>
+                <td>${row["출판사"] || "-"}</td>
+                <td>${row["청구기호"] || "-"}</td>
               </tr>
             `).join("")}
-          </tbody>
-        `;
+          </tbody>`;
         resultsDiv.innerHTML = "";
         resultsDiv.appendChild(table);
       }
